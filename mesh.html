@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+	<meta content="charset=UTF-8" />
+	<title>GRIDH Mesh Viewer</title>
+	<link href="/shared/oswald_font.css" rel="stylesheet">
+	<!--STYLESHEET-->
+	<link type="text/css" rel="stylesheet" href="css/mesh.css" />
+	<link rel="stylesheet" href="/shared/shared_styles.css">
+	<link rel="stylesheet" href="/shared/guide.css">
+	<!--SPIDERGL-->
+	<script type="text/javascript" src="js/spidergl.js"></script>
+	<!--JQUERY-->
+	<script type="text/javascript" src="/libs/jquery.js"></script>
+	<!--PRESENTER-->
+	<script type="text/javascript" src="js/presenter.js"></script>
+	<!--3D MODELS LOADING AND RENDERING-->
+	<script type="text/javascript" src="js/nexus.js"></script>
+	<script type="text/javascript" src="js/ply.js"></script>
+	<!--TRACKBALLS-->
+	<script type="text/javascript" src="js/trackball_turntable.js"></script>
+	<script type="text/javascript" src="js/trackball_turntable_pan.js"></script>
+
+	<!--UTILITY-->
+	<script type="text/javascript" src="js/init.js"></script>
+</head>
+<style>
+	.specular_off {
+		background: url(https://data.dh.gu.se/ui-icons/specular_off.png);
+		max-height: 23px;
+		top: 2px;
+	}
+
+	.specular_on {
+		background: url(https://data.dh.gu.se/ui-icons/specular_on.png);
+		max-height: 23px;
+		top: 2px;
+		z-index: 100;
+	}
+
+	#loader {
+		position: absolute;
+		top: calc(50% - 25px);
+		left: calc(50% - 25px);
+		background: url(/shared/interface/6-dots-rotate_white.svg);
+		background-repeat: no-repeat;
+		background-size: contain;
+		width: 50px;
+		height: 50px;
+		transition: all 0.5s ease-in-out;
+		z-index: -1;
+	}
+</style>
+
+<body>
+	<div id="guide"
+		onclick="$('#guide').css('pointer-events', 'none');$('#guide').css('opacity', '0.0');$('#guide-instructions-tools').css('transform', 'scale(0.5)'); $('#instructions').css('transform', 'scale(1.0)');"
+		style="">
+		<div class="guide-content">
+			<!-- <h1>User Guide: <br>Spatial Context</h1> -->
+			<div class="guide-instructions">
+				<div class="guide-instructions-intro">
+					Double-click to focus. Click-and-drag to rotate. <br>Right-click and drag to pan. Scroll to zoom in
+					and out.<br>If available, use the arrows at the top to browse between alternative models.
+				</div>
+
+				<div id="guide-instructions-tools">
+					<h2>Tools</h2>
+
+					<div class="guide-instructions-item">
+						<div class="guide-instructions-item-icon"
+							style="background-image:url(https://data.dh.gu.se/ui-icons/frame_white.png)"></div>
+						<div class="guide-instructions-item-label">
+							<b>Frame object.</b> Changes the view to the original position.
+						</div>
+					</div>
+
+					<div class="guide-instructions-item">
+						<div class="guide-instructions-item-icon"
+							style="background-image:url(https://data.dh.gu.se/ui-icons/colour_on.png)"></div>
+						<div class="guide-instructions-item-label">
+							<p>
+							<p><b>Color toggle.</b></p> Switches on or off the 3D model's color information. With the
+							colors off and the light in the right direction, details will appear in higher contrast.</p>
+						</div>
+					</div>
+
+					<div class="guide-instructions-item">
+						<div class="guide-instructions-item-icon"
+							style="background-image:url(https://data.dh.gu.se/ui-icons/specular_on.png)"></div>
+						<div class="guide-instructions-item-label">
+							<b>Specular toggle.</b> Switches on or off the specular light on the 3D model. Specular
+							light highlights the shiny parts of the model, enhancing the perception of depth and surface
+							details.
+						</div>
+					</div>
+
+					<div class="guide-instructions-item">
+						<div class="guide-instructions-item-icon"
+							style="background-image:url(https://data.dh.gu.se/ui-icons/light-bulb_white.svg); background-position: 5px 0px;">
+						</div>
+						<div class="guide-instructions-item-label">
+							<b>Light tool.</b> Switches on or off the light controls. When activated, click and drag to
+							enhance details. Deactivate the light controls to rotate the 3D model.
+						</div>
+					</div>
+
+					<div class="guide-instructions-item">
+						<div class="guide-instructions-item-icon"
+							style="background-image:url(https://data.dh.gu.se/ui-icons/distance_white.svg)"></div>
+						<div class="guide-instructions-item-label">
+							<b>Measure tool.</b> Switches on or off the ruler. When activated, click on two places to
+							measure the distance between them.
+						</div>
+					</div>
+
+					<div class="module-acknowledgement">
+						<p>The module was created with</p>
+						<p><a href="https://github.com/cnr-isti-vclab/3DHOP" target="_blank">3DHOP</a></p>
+					</div>
+
+					<div class="guide-closer">Close</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+
+	<!-- The content of the sidebar is fetched from the file sidebar.html -->
+	<div id="sidebar" style="background-color:var(--sidebar-bg)"></div>
+
+	<!-- And this is the main action -->
+	<div id="module-container" style="background-color:var(--viewer-bg);">
+		<div id="loader"></div>
+		<div id='light-container'
+			style='position:absolute; width:100%; height:100%; z-index:1000; overflow:hidden; pointer-events: none; display:flex; flex-direction:column; align-items: center; justify-content: center; '>
+			<div id='light-canvas' style='width:700px; height:700px;pointer-events: none;'>
+
+			</div>
+		</div>
+		<div id="3dhop" class="tdhop" onmousedown="if (event.preventDefault) event.preventDefault()">
+
+			<!-- The draw canvas is the home of the 3d-model-->
+			<canvas id="draw-canvas" />
+
+		</div>
+
+		<div class="interface-area">
+			<div id="toolbar_m" class="toolbar-bottom">
+				<div id="toolbar">
+					<img id="home_m" title="Reset the view" src="https://data.dh.gu.se/ui-icons/frame_white.png"
+						style="width:28px; height:28px; padding-top:4px!important;" />
+
+					<!--ZOOM-->
+					<img id="zoomin" class="narrow-toolbar-icon" title="Zoom in the view"
+						src="https://data.dh.gu.se/ui-icons/zoomin_big_white.png" />
+					<img id="zoomout" class="narrow-toolbar-icon" title="Zoom out the view"
+						src="https://data.dh.gu.se/ui-icons/zoomout_big_white.png" />
+
+					<!--COLOR-->
+					<img id="color_on_m" title="Disable colour information"
+						src="https://data.dh.gu.se/ui-icons/colour_off.png"
+						style="position:absolute; visibility:hidden; " />
+					<img id="color_m" title="Enable colour information"
+						src="https://data.dh.gu.se/ui-icons/colour_on.png" />
+
+					<!--SPECULAR-->
+					<img id="specular" class="specular_off specular_on" title="Toggle specular light"
+						onclick="toggleSpecular()" src="https://data.dh.gu.se/ui-icons/specular_empty.svg" />
+
+					<!--LIGHT-->
+					<img id="light_on_m" title="Disable light control"
+						src="https://data.dh.gu.se/ui-icons/light-bulb_active.svg"
+						style="position:absolute; visibility:hidden;  " />
+					<img id="light_m" title="Enable light control"
+						src="https://data.dh.gu.se/ui-icons/light-bulb_off.svg" />
+
+
+					<!--MEASURE-->
+					<img id="measure_on_m" title="Disable measure tool"
+						src="https://data.dh.gu.se/ui-icons/distance_active.svg"
+						style="position:absolute; visibility:hidden;  " />
+					<img id="measure_m" title="Enable measure tool"
+						src="https://data.dh.gu.se/ui-icons/distance_white.svg" />
+
+				</div>
+			</div>
+			<div class="guide-button compact" title="User Guide"
+				onclick="$('#instructions').css('transform', 'scale(0.0)'); $('#guide').css('pointer-events', 'auto');$('#guide').css('opacity', '1.0');$('#guide-instructions-tools').css('transform', 'scale(1.0)');">
+				?</div>
+			<a id="download" target="_self">
+				<div class="round-button download-button compact deactivated" title="Download image"></div>
+			</a>
+
+			<div id="trackball_position" class="round-button share-button compact" title="Copy link to view"
+				onclick="logTrackballPosition();">
+				<div id="share-label" class="label-popup"></div>
+			</div>
+
+		</div>
+		<div id="toolButtonsContainerVertical">
+			<button id="rotateLeft" class="toolButtonVertical compact"
+				title="Press to rotate counter-clockwise. Double-click to rotate 90 degrees counter-clockwise.">
+				<img src="https://data.dh.gu.se/ui-icons/rotate_left_white.png" />
+			</button>
+			<button id="rotateRight" class="toolButtonVertical compact"
+				title="Press to rotate clockwise. Double-click to rotate 90 degrees clockwise.">
+				<img src="https://data.dh.gu.se/ui-icons/rotate_right_white.png" />
+			</button>
+		</div>
+
+	</div>
+
+	<div class="ui-overlay-container" style="height:100vh; z-index:1000; pointer-events:none;">
+		<!--MEASURE-->
+		<div id="measure-box" class="output-box">
+			<span id="measure-label"></span>
+			<hr />
+			<span id="measure-output" class="output-text" onmousedown="event.stopPropagation()">0.0</span>
+		</div>
+		<!--MEASURE-->
+	</div>
+
+	<!-- Here we  have a floating div with instructions on how to navigate -->
+	<div class="ui-overlay-container" style="height:300px; z-index:1000; pointer-events:none; ">
+		<div id="instructions" style="bottom:20px; width:315px;">
+			<div class="instruction-closer" onclick="$('#instructions').hide();"></div>
+			<div style="margin-top: 0px;">Double-click to focus. Click and drag to pan. <br> Right-click and drag to
+				rotate (long-press on touch screen).
+			</div>
+		</div>
+	</div>
+</body>
+
+<script type="text/javascript">
+	var specular = true;
+	var presenter = null;
+	var rotationAngle = 0; //current rotation angle
+	var trackballStart = [0.0, 0.0, 0.0, 0.0, 0.0, 2.0];
+
+	function rotateMesh(degrees) {
+		rotationAngle += degrees;
+
+		var radianAngle = sglDegToRad(rotationAngle);
+		var rotationMatrix = SglMat4.rotationAngleAxis(radianAngle, [0.0, 0.0, 1.0]);
+
+		presenter._scene.modelInstances['mesh1'].transform.matrix = SglMat4.mul(
+			SglMat4.translation([0.0, 0.0, 0.0]),
+			rotationMatrix
+		);
+
+		presenter.repaint();
+	}
+
+	document.addEventListener("DOMContentLoaded", function () {
+		// Rotation in 90 degrees step when double-clicking
+		document.getElementById('rotateLeft').ondblclick = function () { rotateMesh(90); };
+		document.getElementById('rotateRight').ondblclick = function () { rotateMesh(-90); };
+
+		// Smooth rotation when keeping the mouse pressed down
+		var rotationInterval;
+
+		document.getElementById('rotateLeft').onmousedown = function () {
+			rotationInterval = setInterval(function () { rotateMesh(1); }, 30);
+		};
+		document.getElementById('rotateRight').onmousedown = function () {
+			rotationInterval = setInterval(function () { rotateMesh(-1); }, 30);
+		};
+
+		document.onmouseup = function () {
+			clearInterval(rotationInterval);
+		};
+	});
+
+	function setup3dhop() {
+		presenter = new Presenter("draw-canvas");
+		presenter.setScene({
+			meshes: {
+				"mesh1": { url: "https://data.dh.gu.se/saintsophia/mesh/115-01.nxz" }
+			},
+			modelInstances: {
+				"mesh1": {
+					mesh: "mesh1",
+					color: [0.75, 0.75, 0.75],
+					tags: ["meshes"],
+				}
+
+			},
+
+			/* These are the numbers that we need to be able to manipulate in backend when registering the model */
+			trackball: {
+				type: TurntablePanTrackball,
+				trackOptions: {
+					startPhi: trackballStart[0],
+					startTheta: trackballStart[1],
+					startDistance: trackballStart[5],
+					startPanX: trackballStart[2],
+					startPanY: trackballStart[3],
+					startPanZ: trackballStart[4],
+					minMaxPhi: [-180.0, 180.0],
+					minMaxTheta: [-80.0, 80.0],
+					minMaxDist: [0.05, 4.0]
+				}
+			}
+		});
+
+		const urlParams = new URLSearchParams(window.location.search);
+		const phi = parseFloat(urlParams.get('phi'));
+		const theta = parseFloat(urlParams.get('theta'));
+		const panX = parseFloat(urlParams.get('panX'));
+		const panY = parseFloat(urlParams.get('panY'));
+		const panZ = parseFloat(urlParams.get('panZ'));
+		const zoom = parseFloat(urlParams.get('zoom'));
+		const rotation = parseFloat(urlParams.get('rotation'));
+
+		if (!isNaN(phi) && !isNaN(theta) && !isNaN(zoom) && !isNaN(panX) && !isNaN(panY) && !isNaN(panZ)) {
+			presenter.animateToTrackballPosition([phi, theta, panX, panY, panZ, zoom]);
+		}
+
+		if (!isNaN(rotation)) {
+			rotateMesh(rotation); //apply the rotation to the mesh
+		}
+
+		for (inst in presenter._scene.modelInstances) {
+			presenter._scene.modelInstances[inst].specularColor = [0.1, 0.1, 0.1, 256.0];
+		}
+
+		//--MEASURE--
+		presenter._onEndMeasurement = onEndMeasure;
+		//--MEASURE--
+
+		//--SECTIONS--
+		sectiontoolInit();
+		//--SECTIONS--
+
+	}
+
+	function logTrackballPosition() {
+		$('#share-label').addClass('popup-animation').delay(3000).queue(function () {
+			$('#share-label').removeClass('popup-animation').dequeue();
+		});
+
+		if (presenter && presenter.getTrackballPosition) {
+			const position = presenter.getTrackballPosition();
+			const currentUrl = new URL(window.location.href);
+
+			const queryParams = new URLSearchParams(currentUrl.search);
+			let query = queryParams.get('q') || '';
+
+			const parts = query.split('/');
+			const prefix = parts[0];
+			const suffix = 'mesh';
+
+			const newQuery = prefix + '/' + suffix;
+
+			queryParams.set('q', newQuery);
+			queryParams.set('phi', position[0].toFixed(12));
+			queryParams.set('theta', position[1].toFixed(12));
+			queryParams.set('panX', position[2].toFixed(12));
+			queryParams.set('panY', position[3].toFixed(12));
+			queryParams.set('panZ', position[4].toFixed(12));
+			queryParams.set('zoom', position[5].toFixed(2));
+			queryParams.set('rotation', rotationAngle.toFixed(2)); //store the rotation
+
+			const newUrl = `${currentUrl.origin}/?${queryParams.toString()}`;
+
+			navigator.clipboard.writeText(newUrl)
+				.then(() => console.log('URL copied to clipboard'))
+				.catch(err => console.error('Could not copy URL:', err));
+		} else {
+			console.error('Trackball position function not available');
+		}
+	}
+
+	// Most of the functions have mobile variations, otherwise the buttons break
+	function actionsToolbar(action) {
+		if (action == 'home') presenter.animateToTrackballPosition(trackballStart);
+		if (action == 'home_m') presenter.animateToTrackballPosition(trackballStart),
+			presenter._scene.modelInstances['mesh1'].transform.matrix = SglMat4.mul(SglMat4.translation([0, 0, 0]), SglMat4.rotationAngleAxis(0, [0, 0, 1])),
+			presenter._scene.modelInstances['mesh1'].transform.matrix = SglMat4.mul(SglMat4.translation([0, 0, 0]), SglMat4.rotationAngleAxis(0, [0, 0, 1])),
+			rotationAngle = 0;
+
+		//--FULLSCREEN--
+		else if (action == 'full' || action == 'full_on') fullscreenSwitch();
+		//--FULLSCREEN--
+		//--ZOOM--
+		else if (action == 'zoomin') presenter.zoomIn();
+		else if (action == 'zoomout') presenter.zoomOut();
+		//--ZOOM--
+		//--LIGHTING--
+		else if (action == 'lighting' || action == 'lighting_off') { presenter.enableSceneLighting(!presenter.isSceneLightingEnabled()); lightingSwitch(); }
+		//--LIGHTING--
+		//--LIGHT--
+		else if (action == 'light' || action == 'light_on') { presenter.enableLightTrackball(!presenter.isLightTrackballEnabled()); lightSwitch(); }
+		else if (action == 'light_m' || action == 'light_on_m') { presenter.enableLightTrackball(!presenter.isLightTrackballEnabled()); lightSwitch(); }
+		//--LIGHT--
+		//--CAMERA--
+		else if (action == 'perspective' || action == 'orthographic') { presenter.toggleCameraType(); cameraSwitch(); }
+		else if (action == 'perspective_m' || action == 'orthographic_m') { presenter.toggleCameraType(); cameraSwitch(); }
+		//--CAMERA--
+		//--COLOR--
+		else if (action == 'color' || action == 'color_on') { presenter.toggleInstanceSolidColor(HOP_ALL, true); colorSwitch(); }
+		else if (action == 'color_m' || action == 'color_on_m') { presenter.toggleInstanceSolidColor(HOP_ALL, true); colorSwitch(); }
+		//--COLOR--
+
+		//--SPECULAR--
+		//--MEASURE--
+		else if (action == 'measure' || action == 'measure_on') { presenter.enableMeasurementTool(!presenter.isMeasurementToolEnabled()); measureSwitch(); }
+		else if (action == 'measure_m' || action == 'measure_on_m') { presenter.enableMeasurementTool(!presenter.isMeasurementToolEnabled()); measureSwitch(); }
+		//--MEASURE--
+		//--HOTSPOT--
+		else if (action == 'hotspot' || action == 'hotspot_on') {
+			presenter.toggleSpotVisibility(HOP_ALL, true); presenter.enableOnHover(!presenter.isOnHoverEnabled());
+			hotspotSwitch();
+		}
+		//--HOTSPOT--
+		//--SCREENSHOT--
+		else if (action == 'screenshot') presenter.saveScreenshot();
+		//--SCREENSHOT--
+		//--SECTIONS--
+		else if (action == 'sections' || action == 'sections_on') { sectiontoolReset(); sectiontoolSwitch(); }
+		//--SECTIONS--
+	}
+
+	function log(msg) {
+		document.getElementById("log-text").innerHTML = "https://shfa.dh.gu.se/objectid/?" + msg + "\n";
+		document.getElementById("log-text").scrollTop = document.getElementById("log-text").scrollHeight;
+	}
+
+	//--MEASURE--
+	function onEndMeasure(measure) {
+		// measure.toFixed(2) sets the number of decimals when displaying the measure
+		// depending on the model measure units, use "mm","m","km" or whatever you have
+		$('#measure-output').html(measure.toFixed(2) * 100 + " cm");
+	}
+
+	//--MEASURE--
+	function MenuSwitch() {
+		var x = document.getElementById("module-container");
+		if (x.style.left === "420px") {
+			x.style.left = "0px";
+		} else {
+			x.style.left = "420px";
+		}
+	}
+
+	function togglePane() {
+		window.parent.postMessage({ type: 'togglePane' }, '*');
+	}
+
+	function toggleSpecular() {
+		var element = document.getElementById("specular");
+		element.classList.toggle("specular_on");
+		if (specular) {
+			for (inst in presenter._scene.modelInstances) {
+				presenter._scene.modelInstances[inst].specularColor = [0.0, 0.0, 0.0, 256.0];
+			}
+			specular = false;
+			presenter.repaint();
+		}
+		else {
+			for (inst in presenter._scene.modelInstances) {
+				presenter._scene.modelInstances[inst].specularColor = [0.1, 0.1, 0.1, 256.0];
+			}
+			specular = true;
+			presenter.repaint();
+		}
+	}
+
+	$(document).ready(function () {
+		// Sidebar loading moved here
+		$("#sidebar").load("/sidebar.html", function () {
+			init3dhop();
+			setup3dhop();
+		});
+	});
+
+	setTimeout(hideInfo, 12000)
+
+	function hideInfo() {
+		$('#instructions').css('transform', 'scale(0.0)');
+	}
+
+	// Visible Light Directions
+	var actionarea = window
+	var drawcanvas = document.getElementById('draw-canvas');
+	var lightcanvas = document.getElementById('light-canvas');
+	window.addEventListener("mousemove", LightDirections); // Mimics the way the light trackball also works outside the canvas
+	drawcanvas.addEventListener("mousemove", LightDirections);
+
+	// Create the light directions
+	var lightDirections = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+	lightDirections.setAttribute('viewBox', '-100 -100 200 200');
+	lightDirections.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+	for (let t = -1; t <= 1; t++)
+		for (let e = -1; e <= 1; e++) {
+			let line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+
+			(line.pos = [35 * t, 35 * e]), lightDirections.appendChild(line);
+			line.setAttribute('stroke', 'rgba(255,255,0, 0.3)');
+			line.setAttribute('stroke-width', '0.5');
+		}
+
+	// Check if the pointer is released and removes the light direction lines at once
+	$(document).mouseup(function () {
+		lightDirections.remove();
+	});
+
+	$(drawcanvas).mouseup(function () {
+		lightDirections.remove();
+	});
+
+	// Draw the light directions only when light is activated and pointer is pressed
+	function LightDirections(event) {
+		if (presenter && presenter.isLightTrackballEnabled() && presenter.ui.isMouseButtonDown(0)) {
+			var rect = drawcanvas.getBoundingClientRect();
+			let xz = event.clientX - rect.width / 2;
+			let yz = event.clientY - rect.height / 2;
+			let i = [...lightDirections.children];
+			for (let s of i) {
+				let i = s.pos[0],
+					n = s.pos[1];
+				s.setAttribute("x1", 0.6 * i - 0), s.setAttribute("y1", 0.6 * n + 0), s.setAttribute("x2", i / 0.5 + xz),
+					s.setAttribute("y2", n / 0.5 + yz);
+			} lightcanvas.appendChild(lightDirections);
+		}
+
+		else { lightDirections.remove(); } // Remove lines when the pointer is no longer pressed	
+	}
+
+</script>
+
+</html>
