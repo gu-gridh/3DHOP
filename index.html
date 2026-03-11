@@ -275,6 +275,22 @@
 	});
 
 	function setup3dhop() {
+		const urlParams = new URLSearchParams(window.location.search);
+		const phiParam = parseFloat(urlParams.get('phi'));
+		const thetaParam = parseFloat(urlParams.get('theta'));
+		const panXParam = parseFloat(urlParams.get('panX'));
+		const panYParam = parseFloat(urlParams.get('panY'));
+		const panZParam = parseFloat(urlParams.get('panZ'));
+		const zoomParam = parseFloat(urlParams.get('zoom'));
+		const rotationParam = parseFloat(urlParams.get('rotation'));
+
+		const startPhi = !isNaN(phiParam) ? phiParam : trackballStart[0];
+		const startTheta = !isNaN(thetaParam) ? thetaParam : trackballStart[1];
+		const startPanX = !isNaN(panXParam) ? panXParam : trackballStart[2];
+		const startPanY = !isNaN(panYParam) ? panYParam : trackballStart[3];
+		const startPanZ = !isNaN(panZParam) ? panZParam : trackballStart[4];
+		const startDistance = !isNaN(zoomParam) ? zoomParam : trackballStart[5];
+
 		presenter = new Presenter("draw-canvas");
 		presenter.setScene({
 			meshes: {
@@ -293,12 +309,12 @@
 			trackball: {
 				type: TurntablePanTrackball,
 				trackOptions: {
-					startPhi: trackballStart[0],
-					startTheta: trackballStart[1],
-					startDistance: trackballStart[5],
-					startPanX: trackballStart[2],
-					startPanY: trackballStart[3],
-					startPanZ: trackballStart[4],
+					startPhi: startPhi,
+					startTheta: startTheta,
+					startDistance: startDistance,
+					startPanX: startPanX,
+					startPanY: startPanY,
+					startPanZ: startPanZ,
 					minMaxPhi: [-180.0, 180.0],
 					minMaxTheta: [-80.0, 80.0],
 					minMaxDist: [0.05, 4.0]
@@ -306,21 +322,11 @@
 			}
 		});
 
-		const urlParams = new URLSearchParams(window.location.search);
-		const phi = parseFloat(urlParams.get('phi'));
-		const theta = parseFloat(urlParams.get('theta'));
-		const panX = parseFloat(urlParams.get('panX'));
-		const panY = parseFloat(urlParams.get('panY'));
-		const panZ = parseFloat(urlParams.get('panZ'));
-		const zoom = parseFloat(urlParams.get('zoom'));
-		const rotation = parseFloat(urlParams.get('rotation'));
+		trackballStart = [startPhi, startTheta, startPanX, startPanY, startPanZ, startDistance];
 
-		if (!isNaN(phi) && !isNaN(theta) && !isNaN(zoom) && !isNaN(panX) && !isNaN(panY) && !isNaN(panZ)) {
-			presenter.animateToTrackballPosition([phi, theta, panX, panY, panZ, zoom]);
-		}
-
-		if (!isNaN(rotation)) {
-			rotateMesh(rotation); //apply the rotation to the mesh
+		if (!isNaN(rotationParam)) {
+			rotationAngle = rotationParam;
+			rotateMesh(0); //apply rotation from URL without incrementing it
 		}
 
 		for (inst in presenter._scene.modelInstances) {
@@ -345,17 +351,7 @@
 		if (presenter && presenter.getTrackballPosition) {
 			const position = presenter.getTrackballPosition();
 			const currentUrl = new URL(window.location.href);
-
-			const queryParams = new URLSearchParams(currentUrl.search);
-			let query = queryParams.get('q') || '';
-
-			const parts = query.split('/');
-			const prefix = parts[0];
-			const suffix = 'mesh';
-
-			const newQuery = prefix + '/' + suffix;
-
-			queryParams.set('q', newQuery);
+			const queryParams = new URLSearchParams();
 			queryParams.set('phi', position[0].toFixed(12));
 			queryParams.set('theta', position[1].toFixed(12));
 			queryParams.set('panX', position[2].toFixed(12));
@@ -424,30 +420,11 @@
 		//--SECTIONS--
 	}
 
-	function log(msg) {
-		document.getElementById("log-text").innerHTML = "https://shfa.dh.gu.se/objectid/?" + msg + "\n";
-		document.getElementById("log-text").scrollTop = document.getElementById("log-text").scrollHeight;
-	}
-
 	//--MEASURE--
 	function onEndMeasure(measure) {
 		// measure.toFixed(2) sets the number of decimals when displaying the measure
 		// depending on the model measure units, use "mm","m","km" or whatever you have
 		$('#measure-output').html(measure.toFixed(2) * 100 + " cm");
-	}
-
-	//--MEASURE--
-	function MenuSwitch() {
-		var x = document.getElementById("module-container");
-		if (x.style.left === "420px") {
-			x.style.left = "0px";
-		} else {
-			x.style.left = "420px";
-		}
-	}
-
-	function togglePane() {
-		window.parent.postMessage({ type: 'togglePane' }, '*');
 	}
 
 	function toggleSpecular() {
@@ -484,7 +461,6 @@
 	}
 
 	// Visible Light Directions
-	var actionarea = window
 	var drawcanvas = document.getElementById('draw-canvas');
 	var lightcanvas = document.getElementById('light-canvas');
 	window.addEventListener("mousemove", LightDirections); // Mimics the way the light trackball also works outside the canvas
