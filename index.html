@@ -239,6 +239,8 @@
 	var presenter = null;
 	var rotationAngle = 0; //current rotation angle
 	var trackballStart = [0.0, 0.0, 0.0, 0.0, 0.0, 2.0];
+	//uncomment this url to enabled the download button
+	//var modelDownloadUrl = "";
 
 	function rotateMesh(degrees) {
 		rotationAngle += degrees;
@@ -283,7 +285,6 @@
 		const panZParam = parseFloat(urlParams.get('panZ'));
 		const zoomParam = parseFloat(urlParams.get('zoom'));
 		const rotationParam = parseFloat(urlParams.get('rotation'));
-
 		const startPhi = !isNaN(phiParam) ? phiParam : trackballStart[0];
 		const startTheta = !isNaN(thetaParam) ? thetaParam : trackballStart[1];
 		const startPanX = !isNaN(panXParam) ? panXParam : trackballStart[2];
@@ -446,11 +447,50 @@
 		}
 	}
 
+	function enableDownloadButton() {
+		var downloadAnchor = $('#download');
+		var downloadButton = $('#download .download-button');
+		downloadAnchor.off('click');
+
+		if (modelDownloadUrl) {
+			downloadButton.removeClass('deactivated');
+			downloadAnchor.attr('href', '#');
+			downloadAnchor.removeAttr('target');
+			downloadAnchor.removeAttr('rel');
+			downloadAnchor.removeAttr('download');
+			downloadAnchor.on('click', async function (event) {
+				event.preventDefault();
+				try {
+					const response = await fetch(modelDownloadUrl);
+					if (!response.ok) throw new Error('Download failed');
+					const blob = await response.blob();
+					const objectUrl = URL.createObjectURL(blob);
+					const filename = modelDownloadUrl.split('/').pop() || 'model';
+					const tempLink = document.createElement('a');
+					tempLink.href = objectUrl;
+					tempLink.download = filename;
+					document.body.appendChild(tempLink);
+					tempLink.click();
+					tempLink.remove();
+					URL.revokeObjectURL(objectUrl);
+				} catch (err) {
+					window.open(modelDownloadUrl, '_blank', 'noopener');
+				}
+			});
+			return;
+		}
+
+		downloadButton.addClass('deactivated');
+		downloadAnchor.removeAttr('download');
+		downloadAnchor.removeAttr('href');
+	}
+
 	$(document).ready(function () {
 		// Sidebar loading moved here
 		$("#sidebar").load("/sidebar.html", function () {
 			init3dhop();
 			setup3dhop();
+			enableDownloadButton();
 		});
 	});
 
