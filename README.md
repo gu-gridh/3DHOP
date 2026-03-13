@@ -11,6 +11,8 @@ Contact Us @ info@3dhop.net
 16 June 2020
 
 #### Getting Started
+Install Visual Studio Code.
+
 1. Click the extensions tab on the left toolbar.
 ![Open extensions](./assets/Readme/screenshot1.png)
 
