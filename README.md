@@ -10,7 +10,7 @@ Contact Us @ info@3dhop.net
 
 16 June 2020
 
-#### Getting Started
+### Getting Started
 Install Visual Studio Code.
 
 1. Click the extensions tab on the left toolbar.
