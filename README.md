@@ -1,4 +1,4 @@
-![3DHOP Logo](documentation/img/logo.png) **3DHOP**
+**3DHOP**
 =========
 3D Heritage Online Presenter
 ----------------------------
@@ -12,12 +12,15 @@ Contact Us @ info@3dhop.net
 
 #### Getting Started
 1. Click the extensions tab on the left toolbar.
-![Open extensions](./assets/Readme/screenshot4.png)
+![Open extensions](./assets/Readme/screenshot1.png)
 
 2. Search for and then install the [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) plug-in.
-![Install plugin](./assets/Readme/screenshot5.png)
+![Install plugin](./assets/Readme/screenshot2.png)
 
 3. Right-click on the `index.html` file and select **Open with Live Server**.
-![Start project](./assets/Readme/screenshot6.png)
+![Start project](./assets/Readme/screenshot3.png)
 
 Your browser will automatically open the application.
+
+Change the model by adjusting this line in index.html
+![Change model](./assets/Readme/screenshot4.png)
