@@ -22,5 +22,8 @@ Contact Us @ info@3dhop.net
 
 Your browser will automatically open the application.
 
-Change the model by adjusting this line in index.html
+Change the model by adjusting this line in index.html.
 ![Change model](./assets/Readme/screenshot4.png)
+
+Uncomment this line to add the link to your model in order to enable downloads. 
+![Change download](./assets/Readme/screenshot5.png)
