@@ -301,17 +301,6 @@ table, th, td, tr {
     background-color: rgba(0, 0, 0, 1);
 }
 
-#sidebar {
-    position: absolute;
-    color: rgb(210, 210, 210);
-    padding: 20px;
-    padding-right: 30px;
-    width: 390px;
-    height: calc(100% - 80px);
-    overflow-y: scroll;
-    box-shadow: inset -2rem 0rem 2rem rgba(0, 0, 0, 0.2) !important;
-}
-
 .full-page-mesh{
     background: url(https://data.dh.gu.se/ui-icons/expand_white.svg);
 	background-size: 110%!important;

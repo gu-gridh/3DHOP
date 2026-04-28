@@ -126,9 +126,6 @@
 		</div>
 	</div>
 
-	<!-- The content of the sidebar is fetched from the file sidebar.html -->
-	<div id="sidebar" style="background-color:var(--sidebar-bg)"></div>
-
 	<!-- And this is the main action -->
 	<div id="module-container" style="background-color:var(--viewer-bg);">
 		<div id="loader"></div>
@@ -141,7 +138,7 @@
 		<div id="3dhop" class="tdhop" onmousedown="if (event.preventDefault) event.preventDefault()">
 
 			<!-- The draw canvas is the home of the 3d-model-->
-			<canvas id="draw-canvas" />
+			<canvas id="draw-canvas"></canvas>
 
 		</div>
 
@@ -301,7 +298,6 @@
 					color: [0.75, 0.75, 0.75],
 					tags: ["meshes"],
 				}
-
 			},
 
 			/* These are the numbers that we need to be able to manipulate in backend when registering the model */
@@ -335,11 +331,6 @@
 		//--MEASURE--
 		presenter._onEndMeasurement = onEndMeasure;
 		//--MEASURE--
-
-		//--SECTIONS--
-		sectiontoolInit();
-		//--SECTIONS--
-
 	}
 
 	function logTrackballPosition() {
@@ -359,7 +350,7 @@
 			queryParams.set('zoom', position[5].toFixed(2));
 			queryParams.set('rotation', rotationAngle.toFixed(2)); //store the rotation
 
-			const newUrl = `${currentUrl.origin}/?${queryParams.toString()}`;
+			const newUrl = `${currentUrl.origin}${currentUrl.pathname}?${queryParams.toString()}`;
 
 			navigator.clipboard.writeText(newUrl)
 				.then(() => console.log('URL copied to clipboard'))
@@ -484,12 +475,9 @@
 	}
 
 	$(document).ready(function () {
-		// Sidebar loading moved here
-		$("#sidebar").load("/sidebar.html", function () {
-			init3dhop();
-			setup3dhop();
-			enableDownloadButton();
-		});
+		init3dhop();
+		setup3dhop();
+		enableDownloadButton();
 	});
 
 	setTimeout(hideInfo, 12000)
