@@ -259,10 +259,12 @@ table, th, td, tr {
     color: white;
     font-size: 14px;
     position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     width: 160px;
     height: auto;
     margin-top: 143px;
-    margin-left: calc(50% - 110px);
+    margin-left: 0;
     padding: 5px 10px 5px 10px;
     background-color: rgba(0, 0, 0, 0.8);
 }
@@ -392,4 +394,3 @@ input[type=range].output-input {
 .output-input::-ms-tooltip {
     display: none;
 }
-
